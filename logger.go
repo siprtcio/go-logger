@@ -2,14 +2,13 @@ package logger
 
 import (
 	"fmt"
-	"log/syslog"
-	"os"
-	"strconv"
 	"github.com/evalphobia/logrus_sentry"
 	"github.com/go-resty/resty/v2"
 	"github.com/go-xmlfmt/xmlfmt"
 	"github.com/sirupsen/logrus"
-	logrus_syslog "github.com/sirupsen/logrus/hooks/syslog"
+	"log/syslog"
+	"os"
+	"strconv"
 )
 
 var logLevel = map[string]logrus.Level{
@@ -26,9 +25,9 @@ var facilityLevel = map[string]syslog.Priority{
 }
 
 type SipRtcLogger struct {
-	LogLevel string
+	LogLevel        string
 	LoggingFacility string
-	LoggingTag string
+	LoggingTag      string
 }
 
 var Logger *logrus.Logger
@@ -88,18 +87,6 @@ func (sLg *SipRtcLogger) NewLogger(level, facility, tag string, sentry string, s
 		l.Hooks.Add(sentHook)
 	}
 
-	if syslogAddr != "" {
-		lf, ok := facilityLevel[facility]
-		if !ok {
-			fmt.Println("Unsupported log facility, falling back to local0")
-			lf = facilityLevel["local0"]
-		}
-		sysHook, err := logrus_syslog.NewSyslogHook("udp", syslogAddr, lf, tag)
-		if err != nil {
-			return l, err
-		}
-		l.Hooks.Add(sysHook)
-	}
 	return l, nil
 }
 
