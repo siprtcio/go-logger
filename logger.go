@@ -108,7 +108,7 @@ func (sLg *SipRtcLogger) XmlLog(logLevel, uuid, message string) {
 	}
 }
 
-func (sLg *SipRtcLogger) CallLog(logLevel, uuid, direction, message string) {
+func (sLg *SipRtcLogger) UuidLog(logLevel, uuid, direction, message string) {
 
 	if unQuoteMsg, err := strconv.Unquote(message); err == nil {
 		message = unQuoteMsg
