@@ -62,10 +62,8 @@ func (sLg *SipRtcLogger) GuardCritical(msg string, err error) {
 func (sLg *SipRtcLogger) NewLogger(level, facility, tag string, sentry string, syslogAddr string) (*logrus.Logger, error) {
 	l := logrus.New()
 
-	fmt.Println("Log leven is ", level)
 	ll, ok := logLevel[level]
 	if !ok {
-		fmt.Println("Unsupported loglevel, falling back to debug!")
 		ll = logLevel["debug"]
 	}
 	l.Level = ll
