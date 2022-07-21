@@ -1,4 +1,4 @@
-package logger
+package gologger
 
 import (
 	"github.com/rotisserie/eris"
