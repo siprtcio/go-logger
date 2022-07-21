@@ -1,4 +1,4 @@
-module github.com/siprtcio/go-logger
+module github.com/siprtcio/gologger
 
 go 1.17
 
