@@ -26,7 +26,7 @@ func (hook *CallerHook) Fire(entry *logrus.Entry) error {
 func NewCallerHook(levels ...logrus.Level) *CallerHook {
 	hook := CallerHook{
 		Field:  "source",
-		Skip:   5,
+		Skip:   1,
 		levels: levels,
 		Formatter: func(file, function string, line int) string {
 			return fmt.Sprintf("%s:%d", file, line)
