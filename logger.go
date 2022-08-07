@@ -43,7 +43,7 @@ func (sLg *SipRtcLogger) InitLogger() {
 	l.DisableHTMLEscape = true
 
 	Logger.SetFormatter(&l)
-	Logger.SetReportCaller(true)
+	//Logger.SetReportCaller(true)
 	Logger.AddHook(&ErrorHook{})
 	callerHook := NewCallerHook()
 	Logger.AddHook(callerHook)
