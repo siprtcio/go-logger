@@ -7,24 +7,24 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type Hook struct {
+type CallerHook struct {
 	Field     string
 	Skip      int
 	levels    []logrus.Level
 	Formatter func(file, function string, line int) string
 }
 
-func (hook *Hook) Levels() []logrus.Level {
+func (hook *CallerHook) Levels() []logrus.Level {
 	return hook.levels
 }
 
-func (hook *Hook) Fire(entry *logrus.Entry) error {
+func (hook *CallerHook) Fire(entry *logrus.Entry) error {
 	entry.Data[hook.Field] = hook.Formatter(findCaller(hook.Skip))
 	return nil
 }
 
-func NewHook(levels ...logrus.Level) *Hook {
-	hook := Hook{
+func NewCallerHook(levels ...logrus.Level) *CallerHook {
+	hook := CallerHook{
 		Field:  "source",
 		Skip:   5,
 		levels: levels,
