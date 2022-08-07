@@ -45,6 +45,8 @@ func (sLg *SipRtcLogger) InitLogger() {
 	Logger.SetFormatter(&l)
 	Logger.SetReportCaller(true)
 	Logger.AddHook(&ErrorHook{})
+	callerHook := NewCallerHook()
+	Logger.AddHook(callerHook)
 }
 
 func (sLg *SipRtcLogger) NewLogFields(fieldMap map[string]interface{}) logrus.Fields {
