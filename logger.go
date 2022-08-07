@@ -120,8 +120,9 @@ func (sLg *SipRtcLogger) UuidLog(logLevel, uuid, direction, message string) {
 		Logger.WithField("requestId", uuid).WithField("direction", direction).Error(message)
 	} else if logLevel == "Info" {
 		Logger.WithField("requestId", uuid).WithField("direction", direction).Info(message)
+	} else {
+		Logger.WithField("requestId", uuid).WithField("direction", direction).Debug(message)
 	}
-	Logger.WithField("requestId", uuid).WithField("direction", direction).Debug(message)
 }
 
 func (sLg *SipRtcLogger) HttpTraceLog(logLevel, requestId string, resp *resty.Response) {
