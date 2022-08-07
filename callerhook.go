@@ -26,7 +26,7 @@ func (hook *CallerHook) Fire(entry *logrus.Entry) error {
 func NewCallerHook(levels ...logrus.Level) *CallerHook {
 	hook := CallerHook{
 		Field:  "source",
-		Skip:   3,
+		Skip:   5,
 		levels: levels,
 		Formatter: func(file, function string, line int) string {
 			return fmt.Sprintf("%s:%d", file, line)
@@ -48,7 +48,7 @@ func findCaller(skip int) (string, string, int) {
 	)
 	for i := 0; i < 10; i++ {
 		pc, file, line = getCaller(skip + i)
-		if !strings.HasPrefix(file, "logrus") {
+		if !strings.HasPrefix(file, "gologger") {
 			break
 		}
 	}
