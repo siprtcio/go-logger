@@ -2,22 +2,31 @@ package gologger
 
 import (
 	"fmt"
+	"log/syslog"
+	"os"
+	"path/filepath"
+	"runtime"
+	"strconv"
+	"strings"
+
 	"github.com/evalphobia/logrus_sentry"
 	"github.com/go-resty/resty/v2"
 	"github.com/go-xmlfmt/xmlfmt"
 	"github.com/sirupsen/logrus"
-	"log/syslog"
-	"os"
-	"strconv"
+	logrus_syslog "github.com/sirupsen/logrus/hooks/syslog"
 )
 
 var logLevel = map[string]logrus.Level{
-	"debug": logrus.DebugLevel,
-	"info":  logrus.InfoLevel,
+	"panic": logrus.PanicLevel,
+	"fatal": logrus.FatalLevel,
+	"error": logrus.ErrorLevel,
 	"warn":  logrus.WarnLevel,
+	"info":  logrus.InfoLevel,
+	"debug": logrus.DebugLevel,
+	"trace": logrus.TraceLevel,
 }
 
-var facilityLevel = map[string]syslog.Priority{
+var faciltiyLevel = map[string]syslog.Priority{
 	"local0": syslog.LOG_LOCAL0,
 	"local1": syslog.LOG_LOCAL1,
 	"local2": syslog.LOG_LOCAL2,
@@ -47,10 +56,35 @@ func (sLg *SipRtcLogger) InitLogger() {
 	Logger.AddHook(&ErrorHook{})
 	callerHook := NewCallerHook()
 	Logger.AddHook(callerHook)
+
 }
 
 func (sLg *SipRtcLogger) NewLogFields(fieldMap map[string]interface{}) logrus.Fields {
 	return logrus.Fields(fieldMap)
+}
+
+type LogFields map[string]interface{}
+
+func filefuncName() logrus.Fields {
+	pc, file, line, ok := runtime.Caller(2)
+	if !ok {
+		file = "?"
+		line = 0
+	}
+
+	fn := runtime.FuncForPC(pc)
+	var fnName string
+	if fn == nil {
+		fnName = "?()"
+	} else {
+		dotName := filepath.Ext(fn.Name())
+		fnName = strings.TrimLeft(dotName, ".") + "()"
+	}
+
+	fileName := fmt.Sprintf("%s:%d", filepath.Base(file), line)
+
+	return logrus.Fields{"file": fileName, "func": fnName}
+
 }
 
 func (sLg *SipRtcLogger) GuardCritical(msg string, err error) {
@@ -68,6 +102,9 @@ func (sLg *SipRtcLogger) NewLogger(level, facility, tag string, sentry string, s
 		ll = logLevel["debug"]
 	}
 	l.Level = ll
+
+	// default json format.
+	l.SetFormatter(&logrus.JSONFormatter{})
 
 	if sentry != "" {
 		hostname, err := os.Hostname()
@@ -87,6 +124,20 @@ func (sLg *SipRtcLogger) NewLogger(level, facility, tag string, sentry string, s
 		sLg.GuardCritical("configuring sentry failed", err)
 
 		l.Hooks.Add(sentHook)
+	}
+
+	if syslogAddr != "" {
+		lf, ok := faciltiyLevel[facility]
+		if !ok {
+			fmt.Println("Unsupported log facility, falling back to local0")
+			lf = faciltiyLevel["local0"]
+		}
+		sysHook, err := logrus_syslog.NewSyslogHook("udp", syslogAddr, lf, tag)
+		if err != nil {
+			return l, err
+		}
+		l.Hooks.Add(sysHook)
+		l.SetFormatter(&logrus.JSONFormatter{})
 	}
 
 	return l, nil
@@ -142,4 +193,46 @@ func (sLg *SipRtcLogger) HttpTraceLog(logLevel, requestId string, resp *resty.Re
 			WithField("RequestAttempt", ti.RequestAttempt).
 			Info("Http Response Received")
 	}
+}
+
+func (sLg *SipRtcLogger) Panic(msg string, fields LogFields) {
+	Logger.WithFields(logrus.Fields(fields)).
+		WithFields(filefuncName()).
+		Panic(msg)
+}
+
+func (sLg *SipRtcLogger) Fatal(msg string, fields LogFields) {
+	Logger.WithFields(logrus.Fields(fields)).
+		WithFields(filefuncName()).
+		Fatal(msg)
+}
+
+func (sLg *SipRtcLogger) Error(msg string, fields LogFields) {
+	Logger.WithFields(logrus.Fields(fields)).
+		WithFields(filefuncName()).
+		Error(msg)
+}
+
+func (sLg *SipRtcLogger) Warn(msg string, fields LogFields) {
+	Logger.WithFields(logrus.Fields(fields)).
+		WithFields(filefuncName()).
+		Warn(msg)
+}
+
+func (sLg *SipRtcLogger) Info(msg string, fields LogFields) {
+	Logger.WithFields(logrus.Fields(fields)).
+		WithFields(filefuncName()).
+		Info(msg)
+}
+
+func (sLg *SipRtcLogger) Debug(msg string, fields LogFields) {
+	Logger.WithFields(logrus.Fields(fields)).
+		WithFields(filefuncName()).
+		Debug(msg)
+}
+
+func (sLg *SipRtcLogger) Trace(msg string, fields LogFields) {
+	Logger.WithFields(logrus.Fields(fields)).
+		WithFields(filefuncName()).
+		Trace(msg)
 }
